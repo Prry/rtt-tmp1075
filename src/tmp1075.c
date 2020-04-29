@@ -20,9 +20,11 @@
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
-/* tmp1075 hardward */
-#define TMP1075_ADDR			0x48 	/* i2c slave address */
-#define TMP1075_DIEID			0x7500	/* tmp1075 device id */
+/* tmp1075 hardware info */
+#define TMP1075_ADDR			0x48 		/* i2c slave address */
+#define TMP1075_DIEID			0x7500		/* tmp1075 device id */
+
+/* tmp1075 register */
 #define TMP1075_REG_TEMP        0x00
 #define TMP1075_REG_CFGR      	0x01
 #define TMP1075_REG_LLIM        0x02
@@ -30,8 +32,8 @@
 #define TMP1075_REG_DIEID       0x0F
 
 /* tmp1075 register value */
-#define	TMP1075_MODE_NOR		0x00
-#define	TMP1075_MODE_DOWN		0x01
+#define	TMP1075_POWER_NOR		0xF0
+#define	TMP1075_POWER_DOWN		0x01
 
 /* tmp1075 for RT-Thread */
 #define	TMP1075_I2C_BUS			"i2c1"		/* i2c linked */
@@ -111,11 +113,11 @@ static rt_err_t tmp1075_read_temp(rt_sensor_t psensor, float *temp)
 	*temp = (float)buf[0];
 	if((buf[0]&0x80) != 0)
 	{/* negative temperature */
-		*temp -= ((buf[1]>>4)&0x0f) * 0.0625;	/* 0.0625C resolution */
+		*temp -= ((buf[1]>>4)&0x0f) * 0.0625f;	/* 0.0625C resolution */
 	}
 	else
 	{/* positive temperature */
-		*temp += ((buf[1]>>4)&0x0f) * 0.0625;
+		*temp += ((buf[1]>>4)&0x0f) * 0.0625f;
 	}
 	
 	return RT_EOK;
@@ -128,22 +130,22 @@ static rt_err_t tmp1075_set_power(rt_sensor_t psensor, rt_uint8_t power)
 	
     if (power == RT_SENSOR_POWER_DOWN)
     {
-	  	ret = tmp1075_read_regs(psensor, TMP1075_REG_CFGR, buf, 2);
+	  	ret = tmp1075_read_regs(psensor, TMP1075_REG_CFGR, buf, 2);/* read register value firstly */
 		if (ret != RT_EOK)
 		{
 			goto __exit;
 		}
-		buf[0] |= TMP1075_MODE_DOWN;
+		buf[0] |= TMP1075_POWER_DOWN;
         ret = tmp1075_write_regs(psensor, TMP1075_REG_CFGR, buf, 2);
     }
     else if (power == RT_SENSOR_POWER_NORMAL)
     {
-        ret = tmp1075_read_regs(psensor, TMP1075_REG_CFGR, buf, 2);
+        ret = tmp1075_read_regs(psensor, TMP1075_REG_CFGR, buf, 2);/* read register value firstly */
 		if (ret != RT_EOK)
 		{
 			goto __exit;
 		}
-		buf[0] &= ~TMP1075_MODE_NOR;
+		buf[0] &= TMP1075_POWER_NOR;
         ret = tmp1075_write_regs(psensor, TMP1075_REG_CFGR, buf, 2);
     }
     else
@@ -205,11 +207,10 @@ static rt_err_t tmp1075_control(struct rt_sensor_device *psensor, int cmd, void 
 	
     switch (cmd)
     {
-    	/* read tmp1075 id */
         case RT_SENSOR_CTRL_GET_ID:
 	       	ret = tmp1075_read_regs(psensor, TMP1075_REG_DIEID, buf, 2);
 			p = (rt_uint8_t*)args;
-			*p++ = buf[1];
+			*p++ = buf[1];		/* tmp1075 device id is 0x7500 */
 			*p = buf[0];
         break;
 		
@@ -269,7 +270,7 @@ int rt_hw_tmp1075_init(const char *name, struct rt_sensor_config *cfg)
         rt_memcpy(&sensor_temp->config, cfg, sizeof(struct rt_sensor_config));
         sensor_temp->ops = &tmp1075_ops;
         
-        ret = rt_hw_sensor_register(sensor_temp, name, RT_DEVICE_FLAG_RDWR, (void*)tmp1075_i2c_bus);
+        ret = rt_hw_sensor_register(sensor_temp, name, RT_DEVICE_FLAG_RDWR, (void*)tmp1075_i2c_bus/* private data */);
         if (ret != RT_EOK)
         {
             LOG_E("device register err code: %d", ret);
@@ -304,4 +305,4 @@ __exit:
     return ret;
 }
 
-#endif /* PKG_USING_BMP180 */
+#endif /* PKG_USING_TMP1075 */
