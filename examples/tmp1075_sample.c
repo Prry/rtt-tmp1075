@@ -9,9 +9,6 @@
  * 2020-04-28     panrui      the first version
  */
 
-#include <rtthread.h>
-#include <rtdevice.h>
-#include "sensor.h"
 #include "tmp1075.h"
 
 static void read_temp_entry(void *parameter)

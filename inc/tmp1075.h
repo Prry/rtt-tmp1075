@@ -12,7 +12,8 @@
 #ifndef _TMP1075_H_
 #define _TMP1075_H_
 
-#include "sensor.h"
+#include <rtthread.h>
+#include <rtdevice.h>
 
 extern int rt_hw_tmp1075_init(const char *name, struct rt_sensor_config *cfg);
 
