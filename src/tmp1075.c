@@ -156,7 +156,7 @@ __exit:
     return ret;
 }
 
-static rt_ssize_t tmp1075_polling_get_data(rt_sensor_t psensor, struct rt_sensor_data *sensor_data)
+static RT_SIZE_TYPE tmp1075_polling_get_data(rt_sensor_t psensor, struct rt_sensor_data *sensor_data)
 {
   	float temp = 0.0f;
 	
@@ -181,7 +181,7 @@ static rt_ssize_t tmp1075_polling_get_data(rt_sensor_t psensor, struct rt_sensor
     return 1;
 }
 
-static rt_ssize_t tmp1075_fetch_data(struct rt_sensor_device *psensor, void *buf, rt_size_t len)
+static RT_SIZE_TYPE tmp1075_fetch_data(struct rt_sensor_device *psensor, void *buf, rt_size_t len)
 {
     RT_ASSERT(buf);
 	RT_ASSERT(psensor);
